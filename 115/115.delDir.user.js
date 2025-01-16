@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            115.delDir
 // @namespace       115.delDir@blc
-// @version         0.0.1
+// @version         0.0.2
 // @author          blc
 // @description     播放页删除
 // @match           https://v.anxia.com/*
@@ -28,7 +28,7 @@
     target.textContent = "请求中...";
 
     const { parent_id, file_id } = await Req115.filesVideo(pickcode);
-    const { data } = await Req115.videosAll(parent_id);
+    const { data } = await Req115.filesAllVideos(parent_id);
     await Req115.rbDelete([data.length === 1 ? parent_id : file_id]);
 
     const listNode = document.querySelector("#js-video_list");

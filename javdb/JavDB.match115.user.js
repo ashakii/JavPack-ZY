@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            JavDB.match115
 // @namespace       JavDB.match115@blc
-// @version         0.0.1
+// @version         0.0.2
 // @author          blc
 // @description     115 网盘匹配
 // @match           https://javdb.com/*
@@ -31,7 +31,7 @@ const TARGET_CLASS = "x-match";
 
 const VOID = "javascript:void(0);";
 const CHANNEL = new BroadcastChannel(GM_info.script.name);
-const API_NAME = "reMatch";
+const MATCH_API = "reMatch";
 
 const listenClick = (onclose, defaultAction) => {
   const actions = {
@@ -119,7 +119,7 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
     load.dataset.uid = UUID;
 
     try {
-      const { data = [] } = await Req115.filesSearchVideosAll(codes.join(" "));
+      const { data = [] } = await Req115.filesSearchAllVideos(codes.join(" "));
       if (load.dataset.uid !== UUID) return;
 
       const sources = extractData(data.filter((it) => regex.test(it.n)));
@@ -159,7 +159,7 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
 
   matcher();
   listenClick(matcher);
-  unsafeWindow[API_NAME] = matcher;
+  unsafeWindow[MATCH_API] = matcher;
 
   const refresh = ({ target }) => {
     if (target.textContent === TARGET_TXT) return;
@@ -189,7 +189,7 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
 
     let pc = "";
     let cid = "";
-    let title = "";
+    let title = "鼠标左键缓存刷新，右键接口刷新";
     let className = "is-normal";
     let textContent = "未匹配";
 
@@ -203,7 +203,7 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
 
       pc = active.pc;
       cid = active.cid;
-      title = sources.map(formatTip).join("\n");
+      title = sources.map(formatTip).join("\n\n");
       className = both ? "is-danger" : zh ? "is-warning" : crack ? "is-info" : "is-success";
       textContent = "已匹配";
       if (len > 1) textContent += ` ${len}`;
@@ -246,7 +246,7 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
       loading = true;
 
       try {
-        const { data = [] } = await Req115.filesSearchVideosAll(prefix);
+        const { data = [] } = await Req115.filesSearchAllVideos(prefix);
         const sources = extractData(data);
         GM_setValue(prefix, sources);
         over(prefix, sources);
@@ -310,7 +310,7 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
     target.dataset.uid = UUID;
 
     try {
-      const { data = [] } = await Req115.filesSearchVideosAll(codes.join(" "));
+      const { data = [] } = await Req115.filesSearchAllVideos(codes.join(" "));
       if (target.dataset.uid !== UUID) return;
 
       const sources = extractData(data.filter((it) => regex.test(it.n)));
@@ -326,13 +326,14 @@ const formatTip = ({ n, s, t }) => `${n} - ${s} / ${t}`;
   const refresh = ({ type, target }) => {
     if (target.textContent === TARGET_TXT) return;
     target.textContent = TARGET_TXT;
+    target.title = "";
 
     if (type === "contextmenu") return matchCode(target);
     if (type !== "click") return;
     const code = target.closest(MOVIE_SELECTOR)?.querySelector(CODE_SELECTOR)?.textContent.trim();
-    if (code) publish(code);
+    if (code) setTimeout(() => publish(code), 750);
   };
 
-  unsafeWindow[API_NAME] = matchCode;
+  unsafeWindow[MATCH_API] = matchCode;
   listenClick(matchCode, refresh);
 })();

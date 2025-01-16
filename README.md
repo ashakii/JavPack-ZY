@@ -1,5 +1,3 @@
-![JavPack](./assets/icon.png)
-
 # JavPack
 
 > 一点微小的工作
@@ -16,7 +14,7 @@
 ### JavDB
 
 > [!NOTE]
-> 样式依赖: [JavDB.style](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.style.user.js)
+> 样式依赖 [JavDB.style](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.style.user.js)
 
 | 名称                            | 描述         | 安装                                                                                 |
 | :------------------------------ | :----------- | :----------------------------------------------------------------------------------- |
@@ -24,6 +22,7 @@
 | [JavDB.search](#search)         | 快捷搜索     | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.search.user.js)     |
 | [JavDB.openTab](#opentab)       | 标签页打开   | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.openTab.user.js)    |
 | JavDB.scroll                    | 滚动加载     | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.scroll.user.js)     |
+| JavDB.filter                    | 影片过滤     | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.filter.user.js)     |
 | [JavDB.trailer](#trailer)       | 预告片       | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.trailer.user.js)    |
 | JavDB.sprite                    | 雪碧图       | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.sprite.user.js)     |
 | JavDB.magnet                    | 磁链扩展     | [安装](https://github.com/bolin-dev/JavPack/raw/main/javdb/JavDB.magnet.user.js)     |
@@ -54,7 +53,9 @@
 ### offline115
 
 > [!WARNING]
-> 新离线任务应保持出现在任务记录首页（离线验证
+> 自行确认 115 已登录
+>
+> 及时清理失败或长期未完成离线任务记录
 
 | `config[]`             | 类型                              | 说明                                                                                                                                        | 默认                                         |
 | :--------------------- | :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------- |
@@ -69,7 +70,7 @@
 | `magnetOptions.filter` | `function`                        | 磁链筛选，参考 [filterCallbackFn](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/filter#callbackfn) | `magnet.size` > `300MB`                      |
 | `magnetOptions.sort`   | `function`                        | 磁链排序，参考 [sortCompareFn](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/toSorted#comparefn)   | `magnet.zh` → `magnet.crack` → `magnet.size` |
 | `magnetOptions.max`    | `number`                          | 最大磁链数                                                                                                                                  | `10`                                         |
-| `verifyOptions.filter` | `function`                        | 视频筛选，参考 [filterCallbackFn](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/filter#callbackfn) | `video.s` > `300MB`                          |
+| `verifyOptions.filter` | `function`                        | 视频筛选，参考 [filterCallbackFn](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/filter#callbackfn) | `video.s` > `150MB`                          |
 | `verifyOptions.clean`  | `boolean`                         | 验证失败删除任务及文件                                                                                                                      | `true`                                       |
 | `verifyOptions.max`    | `number`                          | 验证次数（1s / 次                                                                                                                           | `10`                                         |
 | `rename`               | `string`                          | 重命名，支持 `动态参数`                                                                                                                     | `"${zh}${crack} ${code} ${title}"`           |
@@ -78,32 +79,32 @@
 | `renameTxt.crack`      | `string`                          | 重命名破解匹配格式                                                                                                                          | `"[破解]"`                                   |
 | `tags`                 | `["genres", "actors"]`            | 设置标签                                                                                                                                    | `["genres", "actors"]`                       |
 | `clean`                | `boolean`                         | 验证成功删除不相关文件                                                                                                                      | `true`                                       |
-| `cleanPwd`             | `string`                          | 删除文件后清空回收站                                                                                                                        |                                              |
 | `cover`                | `boolean`                         | 上传设置封面                                                                                                                                | `true`                                       |
 
 <details><summary>动态参数及示例</summary>
 
 ```JavaScript
-// code        番号
-// prefix      前缀
-// title       标题
-// date        日期
-// year        年
-// month       月
-// day         日
-// director    导演
-// maker       片商
-// publisher   发行
-// series      系列
-// genres      类别
-// actors      演员
-// list        清单
+// code               番号
+// codeFirstLetter    番号首字母
+// prefix             前缀
+// title              标题
+// date               日期
+// year               年
+// month              月
+// day                日
+// director           导演
+// maker              片商
+// publisher          发行
+// series             系列
+// genres             类别
+// actors             演员
+// list               清单
 
-// genre       genres[]，仅 type = "genres" 时可用
-// actor       actors[]，仅 type = "actors" 时可用
+// genre              genres[]，仅 type = "genres" 时可用
+// actor              actors[]，仅 type = "actors" 时可用
 
-// zh          字幕资源，仅 rename 内可用
-// crack       破解资源，仅 rename 内可用
+// zh                 字幕资源，仅 rename 内可用
+// crack              破解资源，仅 rename 内可用
 
 // config 自定义配置示例:
 const config = [

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            JavDB.trailer
 // @namespace       JavDB.trailer@blc
-// @version         0.0.1
+// @version         0.0.2
 // @author          blc
 // @description     预告片
 // @match           https://javdb.com/*
@@ -80,7 +80,7 @@ const useVideo = () => {
     target.paused ? target.play() : target.pause();
   };
 
-  const changeVolume = (e, step = 0.2) => {
+  const changeVolume = (e, step) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -88,7 +88,7 @@ const useVideo = () => {
     target.volume = target.volume + step;
   };
 
-  const changeTime = (e, step = 4) => {
+  const changeTime = (e, step) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -96,18 +96,18 @@ const useVideo = () => {
     target.currentTime = target.currentTime + step;
   };
 
-  const onKeydown = (e) => {
+  const onKeyup = (e) => {
     const code = e.code;
 
     if (["KeyM"].includes(code)) return toggleMute(e);
     if (["Space"].includes(code)) return togglePlay(e);
-    if (["KeyW", "ArrowUp"].includes(code)) return changeVolume(e);
-    if (["KeyD", "ArrowRight"].includes(code)) return changeTime(e);
+    if (["KeyW", "ArrowUp"].includes(code)) return changeVolume(e, 0.2);
+    if (["KeyD", "ArrowRight"].includes(code)) return changeTime(e, 4);
     if (["KeyS", "ArrowDown"].includes(code)) return changeVolume(e, -0.1);
     if (["KeyA", "ArrowLeft"].includes(code)) return changeTime(e, -2);
   };
 
-  const onVolumechange = ({ target }) => localStorage.setItem("volume", target.volume);
+  const onVolumechange = (e) => localStorage.setItem("volume", e.target.volume);
 
   return (sources, poster) => {
     const video = document.createElement("video");
@@ -117,10 +117,10 @@ const useVideo = () => {
     video.controls = true;
     video.preload = "metadata";
     video.volume = localStorage.getItem("volume") ?? 0.1;
-    video.innerHTML = sources.map((src) => `<source src="${src}" type="video/mp4" />`).join("");
+    video.innerHTML = sources.map((src) => `<source src="${src}" />`).join("");
 
     video.addEventListener("volumechange", onVolumechange);
-    video.addEventListener("keydown", onKeydown);
+    video.addEventListener("keyup", onKeyup);
     return video;
   };
 };
@@ -178,6 +178,7 @@ const useVideo = () => {
   if (!document.querySelector(selector)) return;
 
   const HOVER = "x-hovered";
+  const UN_HOVER = "x-un-hover";
   const SHOW = "x-show";
   const HIDE = "x-hide";
 
@@ -187,8 +188,11 @@ const useVideo = () => {
 
   const createVideo = useVideo();
 
+  const onVolumechange = (e) => localStorage.setItem("muted", e.target.muted);
+
   const handleHover = (selector, onEnter, onLeave) => {
     let currElem = null;
+    let nextElem = null;
 
     let prevX = null;
     let prevY = null;
@@ -206,6 +210,7 @@ const useVideo = () => {
       lastX = e.pageX;
       lastY = e.pageY;
       lastTime = Date.now();
+      nextElem = e.target;
     };
 
     const inViewport = (elem) => {
@@ -226,11 +231,13 @@ const useVideo = () => {
     const calcSpeed = () => Math.sqrt((prevX - lastX) ** 2 + (prevY - lastY) ** 2) / (lastTime - prevTime);
 
     const trackSpeed = () => {
-      const speed = lastTime && lastTime !== prevTime ? calcSpeed() : 0;
+      if (!nextElem.classList.contains(UN_HOVER)) {
+        const speed = lastTime && lastTime !== prevTime ? calcSpeed() : 0;
 
-      if (speed <= 0.02 && inViewport(currElem) && !isScrolling) {
-        clearTrack(currElem);
-        return onEnter?.(currElem);
+        if (speed <= 0.02 && inViewport(currElem) && !isScrolling) {
+          clearTrack(currElem);
+          return onEnter?.(currElem);
+        }
       }
 
       prevX = lastX;
@@ -247,8 +254,8 @@ const useVideo = () => {
       prevX = e.pageX;
       prevY = e.pageY;
       prevTime = Date.now();
-
       currElem = target;
+
       currElem.addEventListener("mousemove", onMousemove);
       trackSpeedInterval = setInterval(trackSpeed, 200);
     };
@@ -280,8 +287,8 @@ const useVideo = () => {
     };
 
     const onScroll = () => {
-      isScrolling = true;
       clearTimeout(scrollTimer);
+      isScrolling = true;
 
       scrollTimer = setTimeout(() => {
         isScrolling = false;
@@ -303,18 +310,20 @@ const useVideo = () => {
     const video = createVideo(sources.toReversed(), cover);
 
     video.loop = true;
-    video.muted = !RUNNING;
+    video.muted = !RUNNING || localStorage.getItem("muted") === "true";
     video.autoplay = true;
     video.currentTime = 2;
     video.disablePictureInPicture = true;
     video.setAttribute("controlslist", "nofullscreen nodownload noremoteplayback noplaybackrate");
 
+    video.addEventListener("volumechange", onVolumechange);
     elem.append(video);
+
     requestAnimationFrame(() => video.classList.add(SHOW));
     video.focus();
   };
 
-  const onEnter = async (elem) => {
+  const getTrailer = async (elem) => {
     elem.classList.add(HOVER);
     const url = elem.closest("a").href;
     const mid = url.split("/").at(-1);
@@ -328,6 +337,7 @@ const useVideo = () => {
       }
 
       if (details.sources.length) return setTrailer(elem, details);
+      if (!elem.classList.contains(HOVER)) return;
 
       const sources = await ReqTrailer.getTrailer(details);
       details.sources = sources;
@@ -339,7 +349,7 @@ const useVideo = () => {
     }
   };
 
-  const onLeave = (elem) => {
+  const delTrailer = (elem) => {
     elem.classList.remove(HOVER);
     const video = elem.querySelector("video");
     if (!video) return;
@@ -348,5 +358,5 @@ const useVideo = () => {
     video.classList.replace(SHOW, HIDE);
   };
 
-  handleHover(selector, onEnter, onLeave);
+  handleHover(selector, getTrailer, delTrailer);
 })();

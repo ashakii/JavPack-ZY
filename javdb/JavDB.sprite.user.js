@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            JavDB.sprite
 // @namespace       JavDB.sprite@blc
-// @version         0.0.1
+// @version         0.0.2
 // @author          blc
 // @description     雪碧图
 // @match           https://javdb.com/v/*
@@ -10,6 +10,7 @@
 // @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.ReqSprite.lib.js
 // @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Util.lib.js
 // @connect         javstore.net
+// @connect         pixhost.to
 // @connect         javfree.me
 // @connect         javbee.me
 // @connect         *

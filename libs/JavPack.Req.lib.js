@@ -1,11 +1,19 @@
+/**
+ * @grant GM_xmlhttpRequest
+ */
 class Req {
+  static defaultGetResponseType = "document";
+  static defaultPostResponseType = "json";
+  static defaultTimeout = 30000;
+  static defaultMethod = "GET";
+
   static isPlainObj = (obj) => Object.prototype.toString.call(obj) === "[object Object]";
 
   static request(details) {
     if (typeof details === "string") details = { url: details };
     if (!details?.url) throw new Error("URL is required");
 
-    details = { method: "GET", timeout: 10000, ...details };
+    details = { method: this.defaultMethod, timeout: this.defaultTimeout, ...details };
     const { params, method, data } = details;
 
     if (params) {
@@ -18,14 +26,14 @@ class Req {
     }
 
     if (method === "POST") {
-      details.responseType ??= "json";
+      details.responseType ??= this.defaultPostResponseType;
 
       if (this.isPlainObj(data)) {
         const formData = new FormData();
 
         for (const [key, val] of Object.entries(data)) {
           if (!Array.isArray(val) && !this.isPlainObj(val)) {
-            formData.append(key, val);
+            if (val !== undefined) formData.append(key, val);
             continue;
           }
 
@@ -36,7 +44,7 @@ class Req {
 
         details.data = formData;
       }
-    } else if (method === "GET") details.responseType ??= "document";
+    } else if (method === "GET") details.responseType ??= this.defaultGetResponseType;
 
     return new Promise((resolve, reject) => {
       GM_xmlhttpRequest({
